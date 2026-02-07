@@ -117,9 +117,9 @@ def main():
     )
 
     use_dataset_selector = st.sidebar.checkbox(
-        "Select from dataset (instead of upload)",
-        value=True,
-        help="If enabled, pick an audio file from the dataset path above.",
+        "Enable dataset selector (optional)",
+        value=False,
+        help="If enabled, you can also pick an audio file from the dataset path above (in addition to file upload).",
     )
 
     # Main content area
