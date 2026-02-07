@@ -20,14 +20,24 @@ import pandas as pd
 import glob
 
 # Import core modules
-# Add parent directory to path for imports
+# Add parent directory to path for imports (works for both local and Streamlit Cloud)
 import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
+from pathlib import Path
 
-from core.preprocessor import AudioPreprocessor
-from core.dynamics import PauseAnalyzer
-from core.visualizer import plot_analysis
-from utils.helpers import calculate_metrics, calculate_all_metrics, format_duration
+# Get project root directory
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# Import core modules
+try:
+    from core.preprocessor import AudioPreprocessor
+    from core.dynamics import PauseAnalyzer
+    from core.visualizer import plot_analysis
+    from utils.helpers import calculate_metrics, calculate_all_metrics, format_duration
+except ImportError as e:
+    st.error(f"Import error: {e}")
+    st.stop()
 
 
 # Page configuration
