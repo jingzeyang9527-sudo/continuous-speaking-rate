@@ -30,14 +30,10 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # Import core modules
-try:
-    from core.preprocessor import AudioPreprocessor
-    from core.dynamics import PauseAnalyzer
-    from core.visualizer import plot_analysis
-    from utils.helpers import calculate_metrics, calculate_all_metrics, format_duration
-except ImportError as e:
-    st.error(f"Import error: {e}")
-    st.stop()
+from core.preprocessor import AudioPreprocessor
+from core.dynamics import PauseAnalyzer
+from core.visualizer import plot_analysis
+from utils.helpers import calculate_metrics, calculate_all_metrics, format_duration
 
 
 # Page configuration
@@ -131,33 +127,41 @@ def main():
     uploaded_file = None
     selected_dataset_path: str | None = None
 
+    # Always show file uploader
+    uploaded_file = st.file_uploader(
+        "Choose a WAV file to upload",
+        type=["wav"],
+        help="Upload a mono or stereo WAV file. Any sample rate is supported (will be resampled to 16 kHz).",
+    )
+
+    # Dataset selector (optional, only if enabled and path exists)
     if use_dataset_selector:
-        wavs = list_wavs_recursive(demo_root)
-        if not wavs:
-            st.warning(f"No WAV files found under `{demo_root}`. Disable dataset mode to upload manually.")
-        else:
-            st.sidebar.caption(f"Found {len(wavs)} WAV files")
-            # Show a compact relative path in the dropdown
-            rel_paths = [str(Path(p).relative_to(Path(demo_root))) for p in wavs]
-            choice = st.sidebar.selectbox("Choose a demo audio", options=rel_paths, index=0)
-            selected_dataset_path = str(Path(demo_root) / choice)
+        try:
+            if Path(demo_root).exists():
+                wavs = list_wavs_recursive(demo_root)
+                if wavs:
+                    st.sidebar.caption(f"Found {len(wavs)} WAV files")
+                    # Show a compact relative path in the dropdown
+                    rel_paths = [str(Path(p).relative_to(Path(demo_root))) for p in wavs]
+                    choice = st.sidebar.selectbox("Or choose from dataset", options=rel_paths, index=0)
+                    selected_dataset_path = str(Path(demo_root) / choice)
 
-            if st.sidebar.button("🎲 Random pick", use_container_width=True):
-                idx = np.random.randint(0, len(wavs))
-                selected_dataset_path = wavs[idx]
-                st.session_state["_random_pick_path"] = selected_dataset_path
+                    if st.sidebar.button("🎲 Random pick from dataset", use_container_width=True):
+                        idx = np.random.randint(0, len(wavs))
+                        selected_dataset_path = wavs[idx]
+                        st.session_state["_random_pick_path"] = selected_dataset_path
 
-            # If random pick used, prefer it
-            if "_random_pick_path" in st.session_state:
-                selected_dataset_path = st.session_state["_random_pick_path"]
+                    # If random pick used, prefer it
+                    if "_random_pick_path" in st.session_state:
+                        selected_dataset_path = st.session_state["_random_pick_path"]
 
-            st.info(f"📄 **Dataset file:** `{selected_dataset_path}`")
-    else:
-        uploaded_file = st.file_uploader(
-            "Choose a WAV file",
-            type=["wav"],
-            help="Upload a mono or stereo WAV file. Any sample rate is supported (will be resampled to 16 kHz).",
-        )
+                    st.info(f"📄 **Dataset file:** `{selected_dataset_path}`")
+                else:
+                    st.sidebar.warning(f"No WAV files found under `{demo_root}`")
+            else:
+                st.sidebar.warning(f"Dataset path `{demo_root}` does not exist. Use file upload above.")
+        except Exception as e:
+            st.sidebar.warning(f"Cannot access dataset path: {e}. Use file upload above.")
 
     if uploaded_file is not None or selected_dataset_path is not None:
         # Create a cache key based on file content and parameters
