@@ -1,0 +1,20 @@
+# Streamlit configuration for public access
+
+[server]
+# Allow access from any IP (for public deployment)
+address = "0.0.0.0"
+port = 8502
+# Enable CORS for cross-origin requests
+enableCORS = false
+enableXsrfProtection = true
+
+[browser]
+# Automatically open browser (set to false for server deployment)
+gatherUsageStats = false
+
+[theme]
+primaryColor = "#1f77b4"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f0f2f6"
+textColor = "#262730"
+font = "sans serif"
